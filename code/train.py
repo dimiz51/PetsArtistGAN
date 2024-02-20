@@ -10,12 +10,34 @@ import random
 from model import CycleGAN
 import numpy as np
 import argparse
+from functools import partial
+from tensorflow.keras.callbacks import ModelCheckpoint
 
 IMG_HEIGHT = 256
 IMG_WIDTH = 256
 
+
+def augmentations(image):
+    """Augmentations function for the training set"""
+    # Apply random horizontal flip
+    image = tf.image.random_flip_left_right(image)
+
+    # Apply random rotation
+    image = tf.image.rot90(image, k=random.randint(0, 3))
+
+    # Apply color augmentation
+    image = tf.image.random_brightness(image, max_delta=0.2)
+
+    return image
+
+
 # Images pre-processing function
-def preprocess_image(image):
+def preprocess_image(image, augment=False):
+
+    # Augmentations for training set
+    if augment:
+        image = augmentations(image)
+
     # Resize the image to the desired dimensions
     image = tf.image.resize(image, [IMG_HEIGHT, IMG_WIDTH])
 
@@ -24,17 +46,21 @@ def preprocess_image(image):
 
     return image
 
+
 # Wrapper function for loading/pre-processing
-def load_and_preprocess_image(image_path):
+def load_and_preprocess_image(image_path, augment=False):
     # Read and decode image file
     image = tf.io.read_file(image_path)
     image = tf.image.decode_jpeg(image, channels=3)
 
     # Preprocess image
-    image = preprocess_image(image)
+    image = preprocess_image(image, augment)
 
     return image
 
+
+# Wrapper function for pre-processing with augmentation for training
+pre_process_augment = partial(load_and_preprocess_image, augment=True)
 
 # Create training dataloaders
 def create_training_dataloader(dataset_dir: str, batch_size: int):
@@ -70,18 +96,34 @@ def create_training_dataloader(dataset_dir: str, batch_size: int):
     art_dataset = tf.data.Dataset.from_tensor_slices(art_files)
     pets_dataset = tf.data.Dataset.from_tensor_slices(pets_files)
 
-    # Map preprocessing function to each image
-    art_dataset = art_dataset.map(load_and_preprocess_image)
-    pets_dataset = pets_dataset.map(load_and_preprocess_image)
+    # Map preprocessing function to each image with augmentation and parallel calls
+    art_dataset = art_dataset.map(
+        pre_process_augment, num_parallel_calls=tf.data.experimental.AUTOTUNE
+    )
+    pets_dataset = pets_dataset.map(
+        pre_process_augment, num_parallel_calls=tf.data.experimental.AUTOTUNE
+    )
 
     # Re-shuffle and batch the datasets
-    art_dataset = art_dataset.batch(batch_size).shuffle(buffer_size=batch_size * 4)
-    pets_dataset = pets_dataset.batch(batch_size).shuffle(buffer_size=batch_size * 4)
+    art_dataset = (
+        art_dataset.shuffle(buffer_size=len(art_files))
+        .batch(batch_size, drop_remainder=True)
+        .prefetch(tf.data.experimental.AUTOTUNE)
+    )
+    pets_dataset = (
+        pets_dataset.shuffle(buffer_size=len(pets_files))
+        .batch(batch_size, drop_remainder=True)
+        .prefetch(tf.data.experimental.AUTOTUNE)
+    )
 
     return pets_dataset, art_dataset
 
 
-def main(epochs: int, batch_size: int):
+# -------------------Training Callbacks------------
+# TODO: ADD a visualization and a early stopping callback
+
+
+def main(epochs: int, batch_size: int, checkpoint_path: str):
     # Create training dataloader
     pets_train, art_train = create_training_dataloader(
         "../datasets/PetsGAN_train", batch_size
@@ -101,18 +143,23 @@ def main(epochs: int, batch_size: int):
 
     # Train the model
     print(f"Starting training...")
-    for epoch in range(epochs):
-        for image_x, image_y in tf.data.Dataset.zip((pets_train, art_train)):
-            model.train_step(image_x, image_y)
+    history = model.fit(tf.data.Dataset.zip((pets_train, art_train)), epochs=epochs)
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "--epochs", type=int, default=1, help="number of epochs (default: 1)"
+        "--epochs",
+        type=int,
+        default=150,
+        help="Default: 150 (80 constant-70 Linear Annealing)",
     )
+    parser.add_argument("--batch_size", type=int, default=1, help="Original paper: 1")
     parser.add_argument(
-        "--batch_size", type=int, default=4, help="batch size (default: 4)"
+        "--checkpoint_path",
+        type=str,
+        default="./checkpoints/",
+        help="Path to save checkpoints to",
     )
     args = parser.parse_args()
-    main(args.epochs, args.batch_size)
+    main(args.epochs, args.batch_size, args.checkpoint_path)
