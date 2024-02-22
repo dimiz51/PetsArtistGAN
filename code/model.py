@@ -203,6 +203,45 @@ class CycleGAN(tf.keras.Model):
             "disc_Y_loss": disc_Y_loss,
         }
 
+    def test_step(self, batch_input):
+        real_x, real_y = batch_input
+
+        # Generate fake images
+        fake_y = self.generator_G(real_x)
+        fake_x = self.generator_F(real_y)
+
+        # Generate reconstructed images
+        reconstructed_x = self.generator_F(fake_y)
+        reconstructed_y = self.generator_G(fake_x)
+
+        # Generate identity images
+        same_x = self.generator_F(real_x)
+        same_y = self.generator_G(real_y)
+
+        # Discriminator outputs
+        disc_real_x = self.discriminator_X(real_x)
+        disc_fake_x = self.discriminator_X(fake_x)
+        disc_real_y = self.discriminator_Y(real_y)
+        disc_fake_y = self.discriminator_Y(fake_y)
+
+        # Define and calculate losses
+        gen_G_loss = self.gen_loss_fn(disc_fake_y)
+        gen_F_loss = self.gen_loss_fn(disc_fake_x)
+        cycle_loss = self.cycle_loss_fn(real_x, reconstructed_x) + self.cycle_loss_fn(
+            real_y, reconstructed_y
+        )
+        identity_loss_g = self.identity_loss_fn(real_y, same_y)
+        identity_loss_f = self.identity_loss_fn(real_x, same_x)
+        disc_X_loss = self.disc_loss_fn(disc_real_x, disc_fake_x)
+        disc_Y_loss = self.disc_loss_fn(disc_real_y, disc_fake_y)
+
+        return {
+            "gen_G_loss": gen_G_loss,
+            "gen_F_loss": gen_F_loss,
+            "disc_X_loss": disc_X_loss,
+            "disc_Y_loss": disc_Y_loss,
+        }
+
     # Generator model setup
     def build_generator(self, id):
         inputs = layers.Input(shape=[IMG_WIDTH, IMG_HEIGHT, 3])
