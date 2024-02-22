@@ -226,7 +226,7 @@ def main(epochs: int, batch_size: int, constant_lr: int):
     # Take an image from the validation set for the visualization callback
     callback_image = next(iter(pets_val))
 
-    print(f"Creating PetsGAN model...")
+    print(f"Creating PetsArtistGAN model...")
 
     # Create and compile model
     model = CycleGAN()

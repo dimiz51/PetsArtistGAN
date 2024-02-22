@@ -1,4 +1,4 @@
-# PetsGAN: Generating Art-Influenced Pet Portraits with CycleGAN
+# PetsArtistGAN: Generating Art-Influenced Pet Portraits with CycleGAN
 This Deep Learning project utilizes the CycleGAN to produce captivating pet portraits influenced by various artistic styles from various different eras. By leveraging the power of generative adversarial networks (GANs), PetsGAN transforms ordinary pet images into visually striking compositions reminiscent of renowned art movements, allowing pet owners to create simple images of their pets into canvas-like portraits. 
 
 As training the model is quite computationally expensive, currently only the pre-training of the model on all styles present in the art styles dataset(link below) and the Oxford pets dataset was conducted. However, a next step would be to fine-tune this model on a smaller dataset of pet/art images coming from a single style or artist.
@@ -25,7 +25,7 @@ The model architecture includes two generators responsible for transforming pet 
 
 - code/gets_pets_ds.py: Downloads and save the OxfordPets dataset for processing.
 
-- code/model.py: Module containing the PetsGAN model code.
+- code/model.py: Module containing the PetsArtistGAN model code.
 
 - code/test_inference.py: Containts inference code to test a trained model on a jpg image as:
 ```
@@ -41,7 +41,7 @@ python ./code/test_inference.py --model <YOUR_MODEL_DIR> --input-image <JPG_IMAG
 - google_collab/PetsGAN.ipynb: Jupyter Notebook to train the model on Google Collab
 
 # Datasets
-In order to create the training and validation sets to train our PetsGAN
+In order to create the training and validation sets to train our PetsArtist
 model from scratch, run follow the steps below.
 
 ### Step 1: Download and generate the Oxford Pets dataset from Tensorflow-Datasets
@@ -50,7 +50,7 @@ python ./code/get_pets_ds.py
 ```
 
 ### Step 2: Create the Art styles dataset as you see fit:
-You can use any of the provided dataset generators (style specific or all styles generators) under *./code/art_dataset.ipynb* to create the art styles dataset.
+You can use the dataset generator provided in *./code/art_dataset.ipynb* to create the art styles dataset after downloading it from Kaggle.
 
 **Art dataset source**: https://www.kaggle.com/datasets/ikarus777/best-artworks-of-all-time
 
