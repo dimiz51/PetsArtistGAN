@@ -71,10 +71,6 @@ def create_training_dataloader(dataset_dir: str, batch_size: int):
     art_files = tf.io.gfile.glob(os.path.join(dataset_dir, "art", "*.jpg"))
     pets_files = tf.io.gfile.glob(os.path.join(dataset_dir, "pets", "*.jpg"))
 
-    # Remove half of the files for testing
-    art_files = art_files[: int(len(art_files) // 25)]
-    pets_files = pets_files[: int(len(pets_files) // 25)]
-
     # Shuffle the file paths
     random.shuffle(art_files)
     random.shuffle(pets_files)
