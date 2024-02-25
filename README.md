@@ -1,12 +1,12 @@
 # PetsArtistGAN: Generating Art-Influenced Pet Portraits with CycleGAN
-This Deep Learning project utilizes the CycleGAN to produce captivating pet portraits influenced by various artistic styles from various different eras. By leveraging the power of generative adversarial networks (GANs), PetsGAN transforms ordinary pet images into visually striking compositions reminiscent of renowned art movements, allowing pet owners to create simple images of their pets into canvas-like portraits. 
+This Deep Learning project utilizes the CycleGAN to produce captivating pet portraits influenced by various artistic styles from various different eras. By leveraging the power of generative adversarial networks (GANs), this generative Vision model transforms ordinary pet images into visually striking compositions reminiscent of renowned art movements, allowing pet owners to create simple images of their pets into canvas-like portraits. 
 
 As training the model is quite computationally expensive, currently only the pre-training of the model on all styles present in the art styles dataset(link below) and the Oxford pets dataset was conducted. However, a next step would be to fine-tune this model on a smaller dataset of pet/art images coming from a single style or artist.
 
 
-# PetsGAN Model Architecture
+# PetsArtistGAN Model Architecture
 
-The architecture of the PetsGAN model consists of two generators and two discriminators, implemented using TensorFlow/Keras. Below is a summary of the model's layers and parameters:
+The architecture of the PetsArtistGAN model consists of two generators and two discriminators, implemented using TensorFlow/Keras. Below is a summary of the model's layers and parameters:
 
 | **Layer (type)**          | **Output Shape**     | **Param #**    |
 |---------------------------|----------------------|----------------|
